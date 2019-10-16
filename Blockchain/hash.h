@@ -10,7 +10,7 @@ class Hash
 private:
 	static const size_t hash_length = 81;	//324/4 = 81
 
-	string hash;
+	string hash_;
 	//324 bit length
 	string default_string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:'\",.<>/?`~\\|ąčęėįšųūžĄČĘĖĮŠŲŪŽ";
 
@@ -51,7 +51,7 @@ private:
 			}
 		// copy values to hash string
 		for (int i = 0; i < hash_length; i++)
-			hash += copy_default_string[i];
+			hash_ += copy_default_string[i];
 	}
 
 public:
@@ -60,9 +60,9 @@ public:
 
 	Hash(string str) { hashingAlgorithm(str); }
 
-	Hash() { }
+	Hash() : hash_("") { }
 
-	string getHash() const { return hash; }
+	string getHash() const { return hash_; }
 
 	inline void setHash(string str) { hashingAlgorithm(str); }
 };
