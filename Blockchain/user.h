@@ -10,6 +10,9 @@ private:
 
 public:
 
+	User(const string& name, const string& private_key, const string& public_key, const int& balance) : name_{ name }, private_key_{ private_key },
+		public_key_{ public_key }, balance_{ balance } {}
+
 	void setName(const string& n) { name_ = n; }
 	void setPrivateKey(const string& key) { private_key_ = key; }
 	void setPublicKey(const string& key) { public_key_ = key; }
