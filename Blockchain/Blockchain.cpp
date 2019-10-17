@@ -11,21 +11,32 @@ using std::cout;
 // generate blockchain users
 void generateUsers(vector<User>& user_list, const unsigned int& count)
 {
+	cout << "Beginning generating users...\n";
+
 	user_list.reserve(count);
 	for (int i = 0; i < count; i++)
 		user_list.push_back(User("User" + std::to_string(i), std::to_string(i), std::to_string(i), 100));	// give everyone 100 coins
+
+	cout << "Successfully generated " << count << " users each having " << 100 << " coins.\n";
 }
 
 // generate blockchain transactions
 void generateTransactions(vector<Transaction>& tx_list, const unsigned int& tx_count, vector<User>& user_list, const unsigned int& user_count)
 {
+	cout << "Beginning generating transactions...\n";
+
 	tx_list.reserve(tx_count);
 
 	RandomEngine re;
 
-	std::uniform_int_distribution<int> dist = re.uni_int_distr(0, (int)user_count);
-	for (int i = 0; i < tx_count; i++)
+	int int_user_count = user_count - 1;
+	std::uniform_int_distribution<int> dist = re.uni_int_distr(0, int_user_count);
+
+	int i = 0, attempts = 0;	// successful transactions generated
+	while (i < tx_count)
 	{
+		attempts++;
+		//cout << "Attempt: " << attempts << ", i: " << i << "\n";
 		unsigned int random_num_A = (unsigned int)dist(re.mt);	// sender
 		unsigned int random_num_B = (unsigned int)dist(re.mt);	// receiver
 
@@ -34,12 +45,27 @@ void generateTransactions(vector<Transaction>& tx_list, const unsigned int& tx_c
 			random_num_B = dist(re.mt);
 
 		// generate random amount that is less or equal than available cash
-		std::uniform_int_distribution<int> dist_amount = re.uni_int_distr(1, (int)user_list[random_num_A].getBalance());
-		unsigned int tx_amount = (unsigned int)dist_amount(re.mt);
+		int int_user_balance = user_list[random_num_A].getBalance();
+		unsigned int tx_amount = UINT_MAX;
+		if (int_user_balance > 0)
+		{
+			std::uniform_int_distribution<int> dist_amount = re.uni_int_distr(1, int_user_balance);
+			tx_amount = (unsigned int)dist_amount(re.mt);
+		}
+
 
 		// create transaction
-		tx_list.push_back(Transaction(i, user_list[random_num_A], user_list[random_num_B], tx_amount));
+		if (tx_amount <= user_list[random_num_A].getBalance())
+		{
+			tx_list.push_back(Transaction(i, user_list[random_num_A], user_list[random_num_B], tx_amount));
+			user_list[random_num_A].setBalance(user_list[random_num_A].getBalance() - tx_amount);
+			user_list[random_num_B].setBalance(user_list[random_num_B].getBalance() + tx_amount);
+
+			i++;
+		}
 	}
+
+	cout << "Successfully generated " << tx_count << " transactions. Total attempts: " << attempts << ".\n";
 }
 
 void printErrorMsg(const std::exception& msg) { cout << "Error: " << msg.what() << "\n"; }
