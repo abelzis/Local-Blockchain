@@ -5,26 +5,21 @@
 
 #include "block.h"
 #include "RandomEngine.h"
+#include "TimerClass.h"
 
 using std::cout;
 
 // generate blockchain users
 void generateUsers(vector<User>& user_list, const unsigned int& count)
 {
-	cout << "Beginning generating users...\n";
-
 	user_list.reserve(count);
 	for (int i = 0; i < count; i++)
 		user_list.push_back(User("User" + std::to_string(i), std::to_string(i), std::to_string(i), 100));	// give everyone 100 coins
-
-	cout << "Successfully generated " << count << " users each having " << 100 << " coins.\n";
 }
 
 // generate blockchain transactions
 void generateTransactions(vector<Transaction>& tx_list, const unsigned int& tx_count, vector<User>& user_list, const unsigned int& user_count)
 {
-	cout << "Beginning generating transactions...\n";
-
 	tx_list.reserve(tx_count);
 
 	RandomEngine re;
@@ -65,7 +60,71 @@ void generateTransactions(vector<Transaction>& tx_list, const unsigned int& tx_c
 		}
 	}
 
-	cout << "Successfully generated " << tx_count << " transactions. Total attempts: " << attempts << ".\n";
+	cout << "Successfully generated " << tx_count << " transactions. Total attempts: " << attempts << ".";
+}
+
+void blockchainMining(vector<Block>& blockchain, vector<Transaction> tx_list)
+{
+	Timer timer;
+
+	// number of transactions in each block:
+	int tx_limit = 100;
+
+	int tx_counter = 0, block_counter = 0;
+
+	vector<Transaction>::iterator it = tx_list.begin();
+	while (!tx_list.empty())
+	{
+		Timer timer1;
+		cout << "Beginning to mine block No. " << blockchain.size() + 1 << "...";
+		// check if there is more than 100 available transactions
+		if (tx_counter + tx_limit < tx_list.size())
+		{
+			//create new temporary block
+			Block newBlock(blockchain[block_counter].getBlockHash());
+
+			newBlock.addTransaction(vector<Transaction>(it, it + tx_limit));	//add transactions to that block
+
+			newBlock.mineBlock();
+
+			blockchain.push_back(newBlock);
+
+			it += tx_limit;
+
+			block_counter++;
+			
+			cout << "Done! Block Successfully mined in " << timer1.elapsed() << "s\n";
+		}
+		else// if (tx_counter + tx_limit >= tx_list.size())	// if less than 100 left
+		{
+			//create new temporary block
+			Block newBlock(blockchain[block_counter].getPrevBlockHash());
+
+			newBlock.addTransaction(vector<Transaction>(it, tx_list.end()));	//add transactions to that block
+
+			tx_list.clear();
+
+			newBlock.mineBlock();
+
+			blockchain.push_back(newBlock);
+
+			cout << "Done! Block Successfully mined in " << timer1.elapsed() << "s\n";
+
+			block_counter++;
+
+			break;
+		}
+
+		cout << blockchain[block_counter] << "\n";
+
+		//for (int j = i; j < i + tx_limit; j++)
+		//{
+		//	
+		//}
+		tx_counter += tx_limit;
+	}
+
+	cout << "\nTotal time to mine all the blocks: " << timer.elapsed() << "s\n";
 }
 
 void printErrorMsg(const std::exception& msg) { cout << "Error: " << msg.what() << "\n"; }
@@ -103,15 +162,24 @@ int main(int argc, char* argv[])
 		}
 	}
 
-
 	vector<User> user_list;
 	vector<Transaction> tx_list;
-	vector<Block> blockchain;
 
+	Timer timer;
+	cout << "Beginning generating users...\n";
 	generateUsers(user_list, user_gen_amount);	// generate random users
+	cout << "Successfully generated " << user_gen_amount << " users each having " << 100 << " coins.\n" << " Time elapsed: " << timer.elapsed() << "s\n";
+
+	timer.reset();
+	cout << "Beginning generating transactions...\n";
 	generateTransactions(tx_list, tx_gen_amount, user_list, user_gen_amount);	// generate random transactions
+	cout << " Time elapsed: " << timer.elapsed() << "s\n";
 
 	
+	Block genesis_block(Hash("Genesis Block").getHash());
+	vector<Block> blockchain;
+	blockchain.push_back(genesis_block);
 
+	blockchainMining(blockchain, tx_list);
 
 }

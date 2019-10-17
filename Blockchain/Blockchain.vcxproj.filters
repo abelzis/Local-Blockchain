@@ -35,5 +35,8 @@
     <ClInclude Include="RandomEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TimerClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -157,6 +157,7 @@
     <ClInclude Include="block.h" />
     <ClInclude Include="hash.h" />
     <ClInclude Include="RandomEngine.h" />
+    <ClInclude Include="TimerClass.h" />
     <ClInclude Include="transaction.h" />
     <ClInclude Include="user.h" />
   </ItemGroup>
