@@ -8,13 +8,13 @@ Download the latest CMake [here](https://cmake.org/download/) and generate new s
 This is a blockchain simulation that createst fixed amount of users and fixed amount of random transactions between users. Then every fixed amount of transactions is put into a block. The program then tries to mine a block (searching for a hash that meets the difficulty requirement).
 
 ### Default stats
-Number of users: `1000`
 
-Number of transactions: `10000`
-
-Number of transactions in block: `100`
-
-Block difficulty: `"0000"`
+|Variable|Value|
+|:-------|-----:|
+|Number of users| `1000`| 
+|Number of transactions| `10000`|
+|Number of transactions in block| `100`|
+|Block difficulty| `"0000"`|
 
 
 ### Program results
