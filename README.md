@@ -9,9 +9,13 @@ This is a blockchain simulation that createst fixed amount of users and fixed am
 
 ### Default stats
 Number of users: `1000`
+
 Number of transactions: `10000`
+
 Number of transactions in block: `100`
+
 Block difficulty: `"0000"`
+
 
 ### Program results
 It takes on average about 3 minutes to mine one block. It took me 107 minutes to mine 36 blocks with default difficulty:
