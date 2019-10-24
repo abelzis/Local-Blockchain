@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <ctime>
 #include <vector>
 
@@ -8,6 +9,8 @@
 #include "transaction.h"
 using std::vector;
 
+
+bool isVerified_(const Transaction& tx) { return tx.getVerification(); }
 
 class Block {
 private:
@@ -18,6 +21,37 @@ private:
 	vector<Transaction> tx_list_;
 
 	string setDifficultyTarget_() { return "0000"; }
+
+	// payments has to be legal - you cant send 120 coins if you have 100
+	bool verifyTransaction_(const Transaction& tx)
+	{
+		if (tx.getAmount() > tx.getSender().getBalance())
+			return false;
+
+		return true;
+	}
+
+
+	void updateUsers_()
+	{
+		for (int i = 0; i < tx_list_.size(); i++)
+		{
+			User user_A = tx_list_[i].getSender();
+			User user_B = tx_list_[i].getReceiver();
+
+			user_A.setBalance(user_A.getBalance() - tx_list_[i].getAmount());
+			user_B.setBalance(user_B.getBalance() + tx_list_[i].getAmount());
+		}
+	}
+
+
+	void updateTxList_()
+	{
+		vector<Transaction>::iterator bound = std::stable_partition(tx_list_.begin(), tx_list_.end(), isVerified_);
+		tx_list_ = vector<Transaction>(tx_list_.begin(), bound);
+
+							// FIX TRANSACTIONS!!!!!!!
+	}
 
 public:
 
@@ -32,8 +66,19 @@ public:
 
 
 	// push_back transactions
-	inline void addTransaction(const Transaction tx) { tx_list_.push_back(tx); }
-	inline void addTransaction(const vector<Transaction> tx_list) { tx_list_.insert(tx_list_.end(), tx_list.begin(), tx_list.end()); }
+	void addTransaction(const Transaction& tx) 
+	{ 
+		tx_list_.push_back(tx); 
+		tx_list_[tx_list_.size() - 1].verify(verifyTransaction_(tx));
+	}
+	void addTransaction(const vector<Transaction>& tx_list) 
+	{ 
+		vector<Transaction>::iterator it = tx_list_.end();
+		tx_list_.insert(tx_list_.end(), tx_list.begin(), tx_list.end()); 
+		//for (auto& i : tx_list_)
+		for (it = tx_list_.begin(); it != tx_list_.end(); ++it)
+			(*it).verify(verifyTransaction_(*it));
+	}
 	
 	// setter functions
 
@@ -48,19 +93,41 @@ public:
 		// initial hashing:
 			// create 1 hash from transactions data concatenation as strings
 		for (int i = 0; i < tx_list_.size(); i += 2)
-			hash_list[i / 2] = Hash(tx_list_[i].getAsString() + tx_list_[i + 1].getAsString());
+		{
+			if (i + 1 < tx_list_.size())
+				hash_list[i / 2] = Hash(tx_list_[i].getAsString() + tx_list_[i + 1].getAsString());
+			else
+				hash_list[i / 2] = Hash(tx_list_[i].getAsString());
+		}
+
 		
 		// hashing hashes together. Goal: 1 single hash from any number
 		while (hash_list.size() > 1)
 		{
+			if (hash_list.size() == 3)
+			{
+				hash_list[0] = Hash(Hash(hash_list[0].getHash() + hash_list[1].getHash()).getHash() + hash_list[2].getHash());
+				hash_list.resize(1);
+				break;
+			}
+
 			int index = 0;
 			while (index < hash_list.size())
 			{
 				// create 1 hash from concatenation of 2 hashes
-				hash_list[index / 2] = Hash(hash_list[index].getHash() + hash_list[index + 1].getHash());
+				if (index + 1 < hash_list.size())
+				{
+					hash_list[index / 2] = Hash(hash_list[index].getHash() + hash_list[index + 1].getHash());
+					//hash_list.resize(index / 2);
+				}
+				else
+				{
+					hash_list[index / 2] = Hash(hash_list[index].getHash());
+					//hash_list_.resize()
+				}
 				index += 2;
-				hash_list.resize(index / 2);
 			}
+			hash_list.resize(hash_list.size() / 2);
 		}
 		// set merkle root hash
 		merkle_root_ = hash_list[0].getHash();
@@ -76,8 +143,10 @@ public:
 	}
 
 	// hash the block 
-	string mineBlock() 
+	void mineBlock() 
 	{ 
+		updateTxList_();
+
 		string hash = "";
 		bool hashed = false;
 		timestamp_ = time(NULL);
@@ -116,7 +185,8 @@ public:
 			version_++;
 		}
 		block_hash_ = hash;
-		return block_hash_;
+
+		updateUsers_();
 	}
 
 	// getter functions
@@ -134,13 +204,14 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const Block& block)
 	{
 		os << "Stats for current block:\n";
-		os << "Previous block hash: \t" << block.prev_block_hash_ << "\n";
-		os << "Merkle root: \t\t" << block.merkle_root_ << "\n";
-		os << "Timestamp: \t\t" << block.timestamp_ << "\n";
-		os << "Version: \t\t" << block.version_ << "\n";
-		os << "Nonce: \t\t\t" << block.nonce_ << "\n";
-		os << "Difficulty target: \t" << block.difficulty_target_ << "\n";
-		os << "Block hash: \t\t" << block.block_hash_ << "\n";
+		os << "Previous block hash: \t\t" << block.prev_block_hash_ << "\n";
+		os << "Amount of transactions: \t" << block.tx_list_.size() << "\n";
+		os << "Merkle root: \t\t\t" << block.merkle_root_ << "\n";
+		os << "Timestamp: \t\t\t" << block.timestamp_ << "\n";
+		os << "Version: \t\t\t" << block.version_ << "\n";
+		os << "Nonce: \t\t\t\t" << block.nonce_ << "\n";
+		os << "Difficulty target: \t\t" << block.difficulty_target_ << "\n";
+		os << "Block hash: \t\t\t" << block.block_hash_ << "\n";
 
 		return os;
 	}

@@ -50,14 +50,14 @@ void generateTransactions(vector<Transaction>& tx_list, const unsigned int& tx_c
 
 
 		// create transaction
-		if (tx_amount <= user_list[random_num_A].getBalance())
-		{
+		//if (tx_amount <= user_list[random_num_A].getBalance())
+		//{
 			tx_list.push_back(Transaction(i, user_list[random_num_A], user_list[random_num_B], tx_amount));
 			user_list[random_num_A].setBalance(user_list[random_num_A].getBalance() - tx_amount);
 			user_list[random_num_B].setBalance(user_list[random_num_B].getBalance() + tx_amount);
 
 			i++;
-		}
+		//}
 	}
 
 	cout << "Successfully generated " << tx_count << " transactions. Total attempts: " << attempts << ".";
