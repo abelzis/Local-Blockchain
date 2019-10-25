@@ -65,4 +65,9 @@ public:
 	string getHash() const { return hash_; }
 
 	inline void setHash(string str) { hashingAlgorithm(str); }
+
+	inline friend bool operator==(const Hash& left, const Hash& right)
+	{
+		return (left.default_string == right.default_string && left.hash_ == right.hash_ && left.hash_length == right.hash_length);
+	}
 };

@@ -22,4 +22,10 @@ public:
 	string getPrivateKey() const { return private_key_; }
 	string getPublicKey() const { return public_key_; }
 	unsigned int getBalance() const { return balance_; }
+
+
+	inline friend bool operator==(const User& left, const User& right)
+	{
+		return (left.name_ == right.name_ && left.private_key_ == right.private_key_ && left.public_key_ == right.public_key_ && left.balance_ == right.balance_);
+	}
 }; 

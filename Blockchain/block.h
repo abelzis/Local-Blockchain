@@ -23,12 +23,14 @@ private:
 	string setDifficultyTarget_() { return "0000"; }
 
 	// payments has to be legal - you cant send 120 coins if you have 100
+	// and if hashID is the same, it verifies that nothing has been changed in the transaction
 	bool verifyTransaction_(const Transaction& tx)
 	{
-		if (tx.getAmount() > tx.getSender().getBalance())
-			return false;
+		if (tx.getAmount() <= tx.getSender().getBalance())
+			if (tx.getHashID().getHash() == Hash(tx.getAsString()).getHash())
+				return true;
 
-		return true;
+		return false;
 	}
 
 
@@ -49,8 +51,6 @@ private:
 	{
 		vector<Transaction>::iterator bound = std::stable_partition(tx_list_.begin(), tx_list_.end(), isVerified_);
 		tx_list_ = vector<Transaction>(tx_list_.begin(), bound);
-
-							// FIX TRANSACTIONS!!!!!!!
 	}
 
 public:
@@ -81,6 +81,8 @@ public:
 	}
 	
 	// setter functions
+
+	inline void setTransactionList(const vector<Transaction>& tx_list) { tx_list_ = tx_list; }
 
 	// set merkle root hash
 	void setMerkleRoot() {
@@ -143,7 +145,7 @@ public:
 	}
 
 	// hash the block 
-	void mineBlock() 
+	bool mineBlock(const time_t& time_limit) 
 	{ 
 		updateTxList_();
 
@@ -157,6 +159,7 @@ public:
 
 		RandomEngine re;
 		std::uniform_int_distribution<unsigned int> dist = re.uni_int_distr((unsigned int)0, UINT_MAX);
+		time_t time_mark = time(NULL);
 		while (!hashed)
 		{
 			// reset timestamp
@@ -178,15 +181,19 @@ public:
 
 			if (i >= difficulty_target_.size())
 			{
-				hashed == true;
+				hashed = true;
 				break;
 			}
 
 			version_++;
+
+			if (time(NULL) - time_mark > time_limit)
+				return false;
 		}
 		block_hash_ = hash;
 
 		updateUsers_();
+		return true;
 	}
 
 	// getter functions
