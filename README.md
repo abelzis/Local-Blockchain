@@ -18,7 +18,7 @@ This is a blockchain simulation that createst fixed amount of users and fixed am
 
 
 ### Program results
-It takes on average about 3 minutes to mine one block. It took me 107 minutes to mine 36 blocks with default difficulty:
+It takes on average about 3 minutes to mine one block (for my PC). It took me 107 minutes to mine 36 blocks with default difficulty:
 
 ![36 Blocks mined](https://i.gyazo.com/19ed54e966f639b90c0e14f6c02b17d8.png)
 
